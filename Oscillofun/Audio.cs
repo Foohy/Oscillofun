@@ -82,6 +82,7 @@ namespace Oscillofun
                 GC.KeepAlive(wasNotifyProc);
             }
 
+
             //Get some info about their selected device
             var deviceinfo = BassWasapi.BASS_WASAPI_GetDeviceInfo(device);
 
@@ -98,6 +99,8 @@ namespace Oscillofun
 
             //Subscribe to device notifications
             BassWasapi.BASS_WASAPI_SetNotify(WasapiNotifyCallback, IntPtr.Zero);
+
+
             
         }
 

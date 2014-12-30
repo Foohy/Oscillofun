@@ -14,5 +14,6 @@ namespace Oscillofun
         public static float DeltaTime;
 
         public static Matrix4 ProjectionMatrix;
+        public static Engine EngineInstance;
     }
 }

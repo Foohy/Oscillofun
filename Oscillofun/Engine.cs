@@ -50,10 +50,12 @@ namespace Oscillofun
         private void initializeEngine(Settings engineSettings)
         {
             Console.WriteLine("==================================");
-            Console.WriteLine("OLEG ENGINE - LITE - 2D \n{0}\n", typeof(Engine).Assembly.GetName().Version.ToString());
+            Console.WriteLine("OLEG ENGINE - LITE - 2D \n{0}", typeof(Engine).Assembly.GetName().Version.ToString());
+            Console.WriteLine("==================================\n");
 
             //Store current engine settings
             Utilities.EngineSettings = engineSettings;
+            Utilities.EngineInstance = this;
 
             //Toggle VSync
             this.VSync = engineSettings.VSync;
@@ -78,6 +80,27 @@ namespace Oscillofun
             //Hide the console if we want
             if (!engineSettings.ShowConsole)
                 ConsoleManager.ShowWindow(ConsoleManager.GetConsoleWindow(), ConsoleManager.SW_HIDE);
+
+        }
+
+        /// <summary>
+        /// Check to make sure our current settings are supported, and bump them down if they aren't
+        /// </summary>
+        private void FeatureCheck()
+        {
+            Console.WriteLine("->Beginning feature check");
+
+            //Before OpenGL 2.0, shaders were not part of core so don't bother here
+            if (GLVersion.Major < 2 || true)
+            {
+                Console.WriteLine("GL Version less than 2.0. Good luck");
+                Utilities.EngineSettings.Shaders = Utilities.EngineSettings.GeoShaders = false;
+                
+            }
+
+
+            Console.WriteLine("SHADERS: {0}", Utilities.EngineSettings.Shaders);
+            Console.WriteLine("GEOMETRY SHADERS: {0}", Utilities.EngineSettings.GeoShaders);
         }
 
         /// <summary>Load resources here.</summary>
@@ -87,16 +110,17 @@ namespace Oscillofun
             base.OnLoad(e);
 
             #region Hardware info
-
+            Console.WriteLine("->Retrieving hardware information");
             Console.WriteLine("Vendor: {0}", GL.GetString(StringName.Vendor));
             Console.WriteLine("Renderer: {0}", GL.GetString(StringName.Renderer));
             Console.WriteLine("GLSL Version: {0}", GL.GetString(StringName.ShadingLanguageVersion));
             string versionOpenGL = GL.GetString(StringName.Version);
             GLVersion.Major = (int)Char.GetNumericValue(versionOpenGL[0]);
             GLVersion.Minor = (int)Char.GetNumericValue(versionOpenGL[2]);
-            Console.WriteLine("OpenGL version: {0}", versionOpenGL);
+            Console.WriteLine("OpenGL version: {0}\n", versionOpenGL);
 
-            Console.WriteLine("==================================");
+            //Check our settings to make sure they're legit
+            FeatureCheck();
             #endregion
 
             #region OpenGL Default Values

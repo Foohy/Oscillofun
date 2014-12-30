@@ -16,7 +16,7 @@ namespace Oscillofun
         {
             public string Name;
             public int Location;
-            public ActiveUniformType DataType;
+            //public ActiveUniformType DataType;
             public object Value;
 
             public static Uniform Default = new Uniform()
@@ -29,12 +29,17 @@ namespace Oscillofun
         public int ProgramID = -1;
         public string Name;
 
+        private bool LocationsCached;
+
         //Dictionary<string, int> UniformLocations = new Dictionary<string, int>();
         Dictionary<string, Uniform> Uniforms = new Dictionary<string, Uniform>();
 
         public Shader(string name, string vertexShaderSource, string fragmentShaderSource)
         {
             Name = name;
+
+            //Don't do any shader work if shaders aren't enabled
+            if (!Utilities.EngineSettings.Shaders) return;
 
             //Compile the shaders
             int vShader = CompileShader(vertexShaderSource, ShaderType.VertexShader);
@@ -95,6 +100,13 @@ namespace Oscillofun
 
         public void CacheUniformLocations()
         {
+            //Test if our hardware is gonna let us cache locations beforehand
+            if (!allowsUniformNameRetrieval())
+            {
+                Console.WriteLine("Warning, unable to cache uniform locations.\"glGetActiveUniformName\" or \"glGetActiveUniform\" are not available.");
+                return;
+            }
+
             //Retrieve the number of uniforms
             int uniCount = 0;
             GL.GetProgram(ProgramID, ProgramParameter.ActiveUniforms, out uniCount);
@@ -111,30 +123,75 @@ namespace Oscillofun
                 StringBuilder name = new StringBuilder();
                 GL.GetActiveUniform(ProgramID, i, uniformName.Length+1, out size, out length, out type, name);
 
+                //Cache this single uniform
+                cacheSingleUniform(uniformName, i);
+                /*
                 //Create our uniform struct and store it
                 Uniform uniform = new Uniform()
                 {
-                    DataType = type,
+                    //DataType = type,
                     Location = i,
                     Name = uniformName,
                     Value = null,
                 };
 
                 //Store it's values
-                Uniforms.Add(uniformName, uniform);
-                
+                Uniforms.Add(uniformName, uniform);  
+                 * */
             }
+
+            LocationsCached = true;
+        }
+
+        private bool cacheSingleUniform(string name, int loc = -1)
+        {
+            //If they passed us an invalid location, try to retrieve it ourselves
+            loc = loc == -1 ? GL.GetUniformLocation(ProgramID, name) : loc;
+            if (loc == -1) return false; //Uniform does not exist, can't cache it
+
+            //Create our uniform struct and store it
+            Uniform uniform = new Uniform()
+            {
+                //DataType = type,
+                Location = loc,
+                Name = name,
+                Value = null,
+            };
+
+            //Store it's values
+            Uniforms.Add(name, uniform);
+
+            return true;
+        }
+
+        private bool allowsUniformNameRetrieval()
+        {
+            IntPtr uniNameAddr = (Utilities.EngineInstance.Context as IGraphicsContextInternal).GetAddress("glGetActiveUniformName");
+            IntPtr uniAddr = (Utilities.EngineInstance.Context as IGraphicsContextInternal).GetAddress("glGetActiveUniform");
+
+            return uniNameAddr != IntPtr.Zero && uniAddr != IntPtr.Zero;
         }
 
         public virtual void Bind()
         {
+            //Don't bind if we don't wanna
+            if (ProgramID == -1 || !Utilities.EngineSettings.Shaders) return;
+
             GL.UseProgram(ProgramID);
         }
 
         private Uniform GetUniform(string name, bool autoBind)
         {
-            if (!Uniforms.ContainsKey(name))
+            //If there's no valid program, there's no valid uniform!!
+            if (ProgramID == -1)
                 return Uniform.Default;
+
+            if (!Uniforms.ContainsKey(name))
+            {
+                //If we weren't able to cache all the uniforms beforehand, we'll have to do it as they're accessed
+                if (LocationsCached || !cacheSingleUniform(name))
+                    return Uniform.Default;
+            }
 
             Uniform uniform = Uniforms[name];
 
