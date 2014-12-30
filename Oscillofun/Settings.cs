@@ -16,7 +16,7 @@ namespace Oscillofun
     {
         //General settings
         public VSyncMode VSync = VSyncMode.On;
-        public WindowState WindowMode = WindowState.Normal;
+        public bool Fullscreen = false;
         public bool NoBorder = false;
         public int Width = 1024;
         public int Height = 768;

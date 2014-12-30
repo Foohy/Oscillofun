@@ -30,19 +30,19 @@ namespace Oscillofun
             settings.Width = this.Width;
             settings.Height = this.Height;
             settings.Samples = this.Context.GraphicsMode.Samples;
-            settings.WindowMode = this.WindowState;
+            settings.Fullscreen = this.WindowState == OpenTK.WindowState.Fullscreen;
 
             initializeEngine(settings);
         }
 
         public Engine(Settings engineSettings)
-            : base(engineSettings.Width, engineSettings.Height, new GraphicsMode(32, 24, 0, engineSettings.Samples), typeof(Engine).Assembly.GetName().Name, engineSettings.WindowMode == WindowState.Fullscreen && engineSettings.NoBorder ? GameWindowFlags.Fullscreen : GameWindowFlags.Default)
+            : base(engineSettings.Width, engineSettings.Height, new GraphicsMode(32, 24, 0, engineSettings.Samples), typeof(Engine).Assembly.GetName().Name, !engineSettings.Fullscreen || engineSettings.NoBorder ? GameWindowFlags.Default : GameWindowFlags.Fullscreen)
         {
             initializeEngine(engineSettings);
         }
 
         public Engine(Settings engineSettings, string title)
-            : base(engineSettings.Width, engineSettings.Height, new GraphicsMode(32, 24, 0, engineSettings.Samples), title, engineSettings.WindowMode == WindowState.Fullscreen && engineSettings.NoBorder ? GameWindowFlags.Fullscreen : GameWindowFlags.Default)
+            : base(engineSettings.Width, engineSettings.Height, new GraphicsMode(32, 24, 0, engineSettings.Samples), title, !engineSettings.Fullscreen || engineSettings.NoBorder ? GameWindowFlags.Default : GameWindowFlags.Fullscreen)
         {
             initializeEngine(engineSettings);
         }
@@ -50,8 +50,7 @@ namespace Oscillofun
         private void initializeEngine(Settings engineSettings)
         {
             Console.WriteLine("==================================");
-            Console.WriteLine("OLEG ENGINE - LITE - 2D \n{0}", typeof(Engine).Assembly.GetName().Version.ToString());
-            Console.WriteLine("==================================\n");
+            Console.WriteLine("OLEG ENGINE - LITE - 2D \n{0}\n", typeof(Engine).Assembly.GetName().Version.ToString());
 
             //Store current engine settings
             Utilities.EngineSettings = engineSettings;
@@ -61,14 +60,12 @@ namespace Oscillofun
 
             //Noborder if applicable
             if (engineSettings.NoBorder)
+            {
                 this.WindowBorder = OpenTK.WindowBorder.Hidden;
 
-            //If we don't want noborder and we're set to fullscreen, change our windowmode to whatever
-            if (!engineSettings.NoBorder && engineSettings.WindowMode == OpenTK.WindowState.Fullscreen)
-                this.WindowState = engineSettings.WindowMode;
-            //BUT if we're set to noborder, require the windowstate is 'normal'
-            else if (engineSettings.NoBorder)
-                this.WindowState = OpenTK.WindowState.Normal;
+                if (engineSettings.Fullscreen)
+                    this.WindowState = OpenTK.WindowState.Fullscreen;
+            }
 
             //Hook into some engine callbacks
             //this.OnRenderSceneOpaque += new Action<FrameEventArgs>(RenderSceneOpaque);
@@ -90,7 +87,6 @@ namespace Oscillofun
             base.OnLoad(e);
 
             #region Hardware info
-            Console.WriteLine("==================================");
 
             Console.WriteLine("Vendor: {0}", GL.GetString(StringName.Vendor));
             Console.WriteLine("Renderer: {0}", GL.GetString(StringName.Renderer));
@@ -110,7 +106,7 @@ namespace Oscillofun
             GL.Enable(EnableCap.Texture2D);
             GL.Enable(EnableCap.DepthClamp);
 
-            GL.LineWidth(ClientSize.Width / 500f);
+            GL.LineWidth(1.5f);
             #endregion
 
         }
@@ -123,10 +119,18 @@ namespace Oscillofun
         {
             base.OnResize(e);
 
-            //Resize the view area to match the new bounds
-            GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+            RegenerateProjectionMatrix();
 
-            GL.LineWidth(ClientSize.Width / 500f);
+            //Resize the view area to match the new bounds
+            GL.Viewport(0, 0, ClientSize.Width, ClientSize.Height);
+
+            //Change the general projection matrix so that units==pixels
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadIdentity();
+            GL.MultMatrix(ref Utilities.ProjectionMatrix);
+
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
         }
 
         /// <summary>
@@ -139,6 +143,11 @@ namespace Oscillofun
 
             //Clear the background
             GL.Clear(ClearBufferMask.ColorBufferBit);
+        }
+
+        private void RegenerateProjectionMatrix()
+        {
+            Utilities.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(0, ClientSize.Width, ClientSize.Height, 0, -1, 1);
         }
     }
 }

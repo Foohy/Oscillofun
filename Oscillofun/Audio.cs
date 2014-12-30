@@ -30,7 +30,7 @@ namespace Oscillofun
 
         private static int WasapiCallback(IntPtr buffer, int length, IntPtr user)
         {
-            BassWasapi.BASS_WASAPI_GetData(SampleData, (int)(BASSData.BASS_DATA_FLOAT) | SampleData.Length * WasapiDevice.CurrentDeviceInfo.mixchans);
+            BassWasapi.BASS_WASAPI_GetData(SampleData, (int)(BASSData.BASS_DATA_FLOAT) | SampleData.Length * WasapiDevice.CurrentDeviceInfo.mixchans * 2);
 
             return length;
         }
@@ -46,6 +46,7 @@ namespace Oscillofun
 
         
         private static WASAPIPROC wasProc;
+        private static WASAPINOTIFYPROC wasNotifyProc;
         private static SampleThink wasapiThink;
 
         public static void Start()
@@ -73,10 +74,12 @@ namespace Oscillofun
             {
                 //Initialize bass with a 'no sound' device
                 Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_UPDATEPERIOD, 0);
-                BassInit = Bass.BASS_Init(0, 48000, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
+                BassInit = Bass.BASS_Init(0, 192000, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
 
                 wasProc = new WASAPIPROC(WasapiCallback);
+                wasNotifyProc = new WASAPINOTIFYPROC(WasapiNotifyCallback);
                 GC.KeepAlive(wasProc);
+                GC.KeepAlive(wasNotifyProc);
             }
 
             //Get some info about their selected device
@@ -89,7 +92,13 @@ namespace Oscillofun
             //Set the device so subsequent calls are on it
             BassWasapi.BASS_WASAPI_SetDevice(CurrentDevice);
 
-            BassWasapi.BASS_WASAPI_Init(device, deviceinfo.mixfreq, deviceinfo.mixchans, BASSWASAPIInit.BASS_WASAPI_BUFFER | BASSWASAPIInit.BASS_WASAPI_SHARED, 1, 0, wasProc, IntPtr.Zero);
+            //Initialize our wasapi streaming dealio
+            BASSWASAPIInit flags = BASSWASAPIInit.BASS_WASAPI_AUTOFORMAT | BASSWASAPIInit.BASS_WASAPI_BUFFER | BASSWASAPIInit.BASS_WASAPI_SHARED;
+            BassWasapi.BASS_WASAPI_Init(device, deviceinfo.mixfreq, deviceinfo.mixchans, flags, Program.BufferHistoryLength, 0, wasProc, IntPtr.Zero);
+
+            //Subscribe to device notifications
+            BassWasapi.BASS_WASAPI_SetNotify(WasapiNotifyCallback, IntPtr.Zero);
+            
         }
 
         private static int WasapiCallback(IntPtr buffer, int length, IntPtr user)
@@ -98,6 +107,11 @@ namespace Oscillofun
                 return wasapiThink(buffer, length, user);
 
             return length;
+        }
+
+        private static void WasapiNotifyCallback(BASSWASAPINotify notify, int device, IntPtr user)
+        {
+            Console.WriteLine("NOTIFY: \"{0}\" on device {1}", notify, device);
         }
 
         public static int RetrieveDefaultDevice()
