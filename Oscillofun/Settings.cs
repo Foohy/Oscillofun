@@ -9,6 +9,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace Oscillofun
 {
@@ -57,7 +58,7 @@ namespace Oscillofun
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Failed to load {0}!\n\t {1}", filename, e.Message);
+                    Trace.WriteLine(string.Format("Failed to load {0}!\n\t {1}", filename, e.Message));
                 }
             }
         }
@@ -73,7 +74,7 @@ namespace Oscillofun
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to save {0}!\n\t {1}", filename, e.Message);
+                Trace.WriteLine(string.Format("Failed to save {0}!\n\t {1}", filename, e.Message));
             }
 
         }

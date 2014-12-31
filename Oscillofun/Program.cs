@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 using OpenTK;
 
@@ -17,14 +18,36 @@ namespace Oscillofun
 
         public static float BufferHistoryLength = 0.05f;//0.08533f //The length of the data, in seconds, to allocate for our sample size
         public static float rayDistanceFadeMultiplier = 1; //The length of time it takes for a photon to no longer light against a cathode ray tube, in some magic unit
-
+        
         [STAThread]
         static void Main(string[] args)
         {
+            //Set up the Trace diagnostics debug output
+            Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+            Trace.Listeners.Add(new TextWriterTraceListener("log.txt"));
+            Trace.AutoFlush = true;
+
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppDomain.CurrentDomain.ProcessExit += Program_Exited;
+
             using (Program game = new Program(new Settings(SettingsFile)))
             {
                 game.Run(60.0);
             }
+        }
+
+        static void Program_Exited(object sender, EventArgs e)
+        {
+            Trace.WriteLine("Application closed.");
+        }
+
+        //Hook into when something REALLY BREAKS
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception e = (Exception)args.ExceptionObject;
+            Trace.WriteLine("UNHANDLED EXCEPTION! " + e.Message, "Error");
+            Trace.WriteLine("Stack trace:" + Environment.NewLine + e.StackTrace);
+            Trace.WriteIf(args.IsTerminating, "Fatal error, program terminating.");
         }
 
         public Program()
@@ -47,8 +70,7 @@ namespace Oscillofun
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-
-
+            
             Audio.Init();
 
             //Change this value based on their output frequency

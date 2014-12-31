@@ -58,6 +58,7 @@
     <Compile Include="Engine.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Graphics.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

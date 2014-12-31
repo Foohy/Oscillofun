@@ -114,7 +114,7 @@ namespace Oscillofun
 
         private static void WasapiNotifyCallback(BASSWASAPINotify notify, int device, IntPtr user)
         {
-            Console.WriteLine("NOTIFY: \"{0}\" on device {1}", notify, device);
+            System.Diagnostics.Trace.WriteLine(string.Format("NOTIFY: \"{0}\" on device {1}", notify, device));
         }
 
         public static int RetrieveDefaultDevice()

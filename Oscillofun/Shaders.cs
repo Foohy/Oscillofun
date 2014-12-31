@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
+using System.Diagnostics;
 
 using OpenTK;
 using OpenTK.Graphics;
@@ -111,11 +112,11 @@ namespace Oscillofun
             //Error/warning output
             if (compileStatus == 0)
             {
-                Console.WriteLine("SHADER \"{0}\" FAILED TO COMPILE!{1}{2}", Name, Environment.NewLine, compileLog);
+                Trace.WriteLine(string.Format("{0} SHADER \"{1}\" FAILED TO COMPILE!{2}{3}", type, Name, Environment.NewLine, compileLog));
                 return -1;
             }
             else if (compileLog.Length > 0)
-                Console.WriteLine("SHADER \"{0}\" COMPILED but with some warnings{1}{2}", Name, Environment.NewLine, compileLog);
+                Trace.WriteLine(string.Format("{0} SHADER \"{1}\" COMPILED but with some warnings{2}{3}", type, Name, Environment.NewLine, compileLog));
 
             //Attach the shader to our active program
             GL.AttachShader(ProgramID, shader);
@@ -131,7 +132,7 @@ namespace Oscillofun
             //Test if our hardware is gonna let us cache locations beforehand
             if (!allowsUniformNameRetrieval())
             {
-                Console.WriteLine("Warning, unable to cache uniform locations.\"glGetActiveUniformName\" or \"glGetActiveUniform\" are not available.");
+                Trace.WriteLine("Warning, unable to cache uniform locations.\"glGetActiveUniformName\" or \"glGetActiveUniform\" are not available.");
                 return;
             }
 

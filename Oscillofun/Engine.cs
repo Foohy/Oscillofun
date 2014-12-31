@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Diagnostics;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -49,9 +51,9 @@ namespace Oscillofun
 
         private void initializeEngine(Settings engineSettings)
         {
-            Console.WriteLine("==================================");
-            Console.WriteLine("OLEG ENGINE - LITE - 2D \n{0}", typeof(Engine).Assembly.GetName().Version.ToString());
-            Console.WriteLine("==================================\n");
+            Trace.WriteLine("==================================");
+            Trace.WriteLine(string.Format("OLEG ENGINE - LITE - 2D \n{0}", typeof(Engine).Assembly.GetName().Version.ToString()));
+            Trace.WriteLine("==================================\n");
 
             //Store current engine settings
             Utilities.EngineSettings = engineSettings;
@@ -75,7 +77,7 @@ namespace Oscillofun
 
             //Make a furious attempt to change the window's icon
             try { this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.AppDomain.CurrentDomain.FriendlyName); }
-            catch (Exception e) { Console.WriteLine("Failed to load icon! {0}", e.Message); }
+            catch (Exception e) { Trace.WriteLine("Failed to load icon! " + e.Message); }
 
             //Hide the console if we want
             if (!engineSettings.ShowConsole)
@@ -88,18 +90,18 @@ namespace Oscillofun
         /// </summary>
         private void FeatureCheck()
         {
-            Console.WriteLine("->Beginning feature check");
+            Trace.WriteLine("->Beginning feature check");
 
             //Before OpenGL 2.0, shaders were not part of core so don't bother here
             if (GLVersion.Major < 2)
             {
-                Console.WriteLine("GL Version less than 2.0. Good luck");
+                Trace.WriteLine("GL Version less than 2.0. Good luck");
                 Utilities.EngineSettings.Shaders = Utilities.EngineSettings.GeoShaders = false;         
             }
 
 
-            Console.WriteLine("SHADERS: {0}", Utilities.EngineSettings.Shaders);
-            Console.WriteLine("GEOMETRY SHADERS: {0}", Utilities.EngineSettings.GeoShaders);
+            Trace.WriteLine("SHADERS: " + Utilities.EngineSettings.Shaders);
+            Trace.WriteLine("GEOMETRY SHADERS: " + Utilities.EngineSettings.GeoShaders);
         }
 
         /// <summary>Load resources here.</summary>
@@ -109,14 +111,15 @@ namespace Oscillofun
             base.OnLoad(e);
 
             #region Hardware info
-            Console.WriteLine("->Retrieving hardware information");
-            Console.WriteLine("Vendor: {0}", GL.GetString(StringName.Vendor));
-            Console.WriteLine("Renderer: {0}", GL.GetString(StringName.Renderer));
-            Console.WriteLine("GLSL Version: {0}", GL.GetString(StringName.ShadingLanguageVersion));
+            Trace.WriteLine("->Retrieving hardware information");
+            Trace.WriteLine("Vendor: " + GL.GetString(StringName.Vendor));
+            Trace.WriteLine("Renderer: " + GL.GetString(StringName.Renderer));
+            Trace.WriteLine("GLSL Version: " + GL.GetString(StringName.ShadingLanguageVersion));
             string versionOpenGL = GL.GetString(StringName.Version);
             GLVersion.Major = (int)Char.GetNumericValue(versionOpenGL[0]);
             GLVersion.Minor = (int)Char.GetNumericValue(versionOpenGL[2]);
-            Console.WriteLine("OpenGL version: {0}\n", versionOpenGL);
+            Trace.WriteLine("OpenGL version: " + versionOpenGL);
+            Trace.WriteLine("");
 
             //Check our settings to make sure they're legit
             FeatureCheck();
