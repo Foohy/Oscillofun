@@ -34,7 +34,10 @@ namespace Oscillofun
         //Dictionary<string, int> UniformLocations = new Dictionary<string, int>();
         Dictionary<string, Uniform> Uniforms = new Dictionary<string, Uniform>();
 
-        public Shader(string name, string vertexShaderSource, string fragmentShaderSource)
+        //Hold a list of shader objects we compiled so we can remove them later
+        private List<int> compiledShaderObjects = new List<int>();
+
+        public Shader(string name, string vertexShaderSource, string fragmentShaderSource, string geoShaderSource = "")
         {
             Name = name;
 
@@ -42,22 +45,38 @@ namespace Oscillofun
             if (!Utilities.EngineSettings.Shaders) return;
 
             //Compile the shaders
-            int vShader = CompileShader(vertexShaderSource, ShaderType.VertexShader);
-            int fShader = CompileShader(fragmentShaderSource, ShaderType.FragmentShader);
+            CompileShader(vertexShaderSource, ShaderType.VertexShader);
+            CompileShader(fragmentShaderSource, ShaderType.FragmentShader);
+
+            //Optionally a geometry shader
+            if (!string.IsNullOrEmpty(geoShaderSource))
+                CompileShader(geoShaderSource, ShaderType.GeometryShader);
 
             //Link
             GL.LinkProgram(ProgramID);
 
             //The shader objects are no longer necessary, they're executing in the program object now
-            GL.DetachShader(ProgramID, vShader);
-            GL.DetachShader(ProgramID, fShader);
-            GL.DeleteShader(vShader);
-            GL.DeleteShader(fShader);
+            ClearShaderObjects();
 
             //Cache some useful locations for uniforms
             CacheUniformLocations();
         }
 
+        /// <summary>
+        /// Detach and remove any existing shader objects that were just compiled into a program
+        /// </summary>
+        private void ClearShaderObjects()
+        {
+            for (int i = compiledShaderObjects.Count-1; i >= 0; i--)
+            {
+                //Delete the shader from the gpu
+                GL.DetachShader(ProgramID, compiledShaderObjects[i]);
+                GL.DeleteShader(compiledShaderObjects[i]);
+
+                //Delete it here, it's dead, Jim.
+                compiledShaderObjects.Remove(i);
+            }
+        }
 
         private int CompileShader(string source, ShaderType type)
         {
@@ -94,6 +113,9 @@ namespace Oscillofun
 
             //Attach the shader to our active program
             GL.AttachShader(ProgramID, shader);
+
+            //Add it to our list of shader objects
+            compiledShaderObjects.Add(shader);
 
             return shader;
         }
