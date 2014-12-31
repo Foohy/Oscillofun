@@ -94,8 +94,7 @@ namespace Oscillofun
             if (GLVersion.Major < 2)
             {
                 Console.WriteLine("GL Version less than 2.0. Good luck");
-                Utilities.EngineSettings.Shaders = Utilities.EngineSettings.GeoShaders = false;
-                
+                Utilities.EngineSettings.Shaders = Utilities.EngineSettings.GeoShaders = false;         
             }
 
 

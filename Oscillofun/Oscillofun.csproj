@@ -63,6 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Shaders.cs" />
+    <Compile Include="Shaders\shader_prettylines_geo.cs" />
     <Compile Include="Shaders\shader_gui.cs" />
     <Compile Include="Shaders\shader_prettylines.cs" />
     <Compile Include="Utilities.cs" />

@@ -16,7 +16,7 @@ namespace Oscillofun
         Material LissajousMaterial;
 
         public static float BufferHistoryLength = 0.05f;//0.08533f //The length of the data, in seconds, to allocate for our sample size
-        public static float rayDistanceFadeMultiplier = 900000f; //The length of time it takes for a photon to no longer light against a cathode ray tube, in some magic unit
+        public static float rayDistanceFadeMultiplier = 1; //The length of time it takes for a photon to no longer light against a cathode ray tube, in some magic unit
 
         [STAThread]
         static void Main(string[] args)
@@ -51,6 +51,10 @@ namespace Oscillofun
 
             Audio.Init();
 
+            //Change this value based on their output frequency
+            //NOTE: MEGAGROSS
+            rayDistanceFadeMultiplier *= Utilities.Lerp(80000f, 900000f, Utilities.Map((float)WasapiDevice.CurrentDeviceInfo.mixfreq, 44100, 192000, 0, 1));
+
             //Grab the output frequency of our device
             int bufferSize = (int)(WasapiDevice.CurrentDeviceInfo.mixfreq * BufferHistoryLength);
             Audio.SetSampleSize(bufferSize*2);
@@ -59,7 +63,18 @@ namespace Oscillofun
             Lissajous.UpdateBuffer();
 
             //Create some materials
-            LissajousMaterial = new Material("LissajousMat", new Shader("PrettyLine", Oscillofun.Shaders.shader_prettylines.VertSource, Oscillofun.Shaders.shader_prettylines.FragSource));
+            Shader lineShader;
+            if (Utilities.EngineSettings.GeoShaders)
+                lineShader = new Shader("PrettyLine",
+                    Oscillofun.Shaders.shader_prettylines_geo.VertSource,
+                    Oscillofun.Shaders.shader_prettylines_geo.FragSource,
+                    Oscillofun.Shaders.shader_prettylines_geo.GeoSource);
+            else
+                lineShader = new Shader("PrettyLine",
+                    Oscillofun.Shaders.shader_prettylines.VertSource,
+                    Oscillofun.Shaders.shader_prettylines.FragSource);
+
+            LissajousMaterial = new Material("LissajousMat", lineShader);
 
             //Levels.LevelManager.InitalizeLevel(new Levels.FrustumCullTest());
         }

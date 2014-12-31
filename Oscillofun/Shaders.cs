@@ -50,8 +50,14 @@ namespace Oscillofun
 
             //Optionally a geometry shader
             if (!string.IsNullOrEmpty(geoShaderSource))
-                CompileShader(geoShaderSource, ShaderType.GeometryShader);
-
+            {
+                CompileShader(geoShaderSource, ShaderType.GeometryShaderExt);
+                Console.WriteLine(GL.GetError());
+                //TODO: Abstract this so it's not slapped in here like this EW
+                GL.ProgramParameter(ProgramID, AssemblyProgramParameterArb.GeometryInputType, (int)All.LineStrip);
+                GL.ProgramParameter(ProgramID, AssemblyProgramParameterArb.GeometryOutputType, (int)All.LineStrip);
+                GL.ProgramParameter(ProgramID, AssemblyProgramParameterArb.GeometryVerticesOut, 4);
+            }
             //Link
             GL.LinkProgram(ProgramID);
 

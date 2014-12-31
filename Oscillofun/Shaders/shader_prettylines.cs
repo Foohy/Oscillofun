@@ -7,10 +7,6 @@ namespace Oscillofun.Shaders
 {
     class shader_prettylines
     {
-        public static string GeoSource =
-@"
-
-";
         public static string VertSource =
 @"#version 150
 

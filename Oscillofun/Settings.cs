@@ -24,7 +24,7 @@ namespace Oscillofun
         //Rendering settings
         public int Samples = 2;
         public bool Shaders = true;
-        public bool GeoShaders = true;
+        public bool GeoShaders = false;
 
         //Audio settings
         //public float GlobalVolume = 1.0f;
