@@ -91,7 +91,7 @@ namespace Oscillofun
             Console.WriteLine("->Beginning feature check");
 
             //Before OpenGL 2.0, shaders were not part of core so don't bother here
-            if (GLVersion.Major < 2 || true)
+            if (GLVersion.Major < 2)
             {
                 Console.WriteLine("GL Version less than 2.0. Good luck");
                 Utilities.EngineSettings.Shaders = Utilities.EngineSettings.GeoShaders = false;
