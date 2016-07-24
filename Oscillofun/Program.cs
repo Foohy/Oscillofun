@@ -173,7 +173,7 @@ namespace Oscillofun
             Lissajous.UpdateBuffer();
 
             
-            this.Title = string.Format("{0:0.00} ms ({1:0.00} fps)", Utilities.DeltaTime*1000, 1 / Utilities.DeltaTime );
+            //this.Title = string.Format("{0:0.00} ms ({1:0.00} fps)", Utilities.DeltaTime*1000, 1 / Utilities.DeltaTime );
             //Levels.LevelManager.Think(e);
         }
 
