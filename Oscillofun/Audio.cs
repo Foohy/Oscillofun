@@ -14,7 +14,10 @@ namespace Oscillofun
         public static float[] SampleData;
         public static void Init()
         {
-            BassNet.Registration("swkauker@yahoo.com", "2X2832371834322");
+            string email = Environment.GetEnvironmentVariable("BASS_REGISTRATION_EMAIL");
+            string key = Environment.GetEnvironmentVariable("BASS_REGISTRATION_KEY");
+            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(key))
+                BassNet.Registration(email, key);
 
             WasapiDevice.SetDevice( WasapiDevice.RetrieveDefaultDevice());
             WasapiDevice.SetDelegate( new WasapiDevice.SampleThink(WasapiCallback));
